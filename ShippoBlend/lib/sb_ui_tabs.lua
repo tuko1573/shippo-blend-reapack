@@ -1,6 +1,7 @@
 --[[
   sb_ui_tabs.lua
-  Shippo Blend Plugins — 小窓の検索タブと整備タブ。設定タブは sb_ui_settings.lua、
+  Shippo Blend Plugins — 小窓の検索タブと整備タブ（整備タブは4つの節: 形式違い／
+  使えない印／無料プラグイン／非表示）。設定タブは sb_ui_settings.lua、
   中に出る2つの小窓（リンク登録・同じものとして扱う）は sb_ui_popups.lua にあり、
   ここから再公開している。sb_ui.lua から呼ばれる。
   表示する中身の計算は sb_viewmodel が持ち、ここは並べるだけ。
@@ -103,7 +104,7 @@ function M.search(ImGui, ctx, app, ui)
     end
     ImGui.TableSetupColumn(ctx, "形式", ImGui.TableColumnFlags_WidthFixed, 120)
     ImGui.TableSetupColumn(ctx, "リンク", ImGui.TableColumnFlags_WidthFixed, 140)
-    ImGui.TableSetupColumn(ctx, "使えない", ImGui.TableColumnFlags_WidthFixed, 60)
+    ImGui.TableSetupColumn(ctx, "使えない／隠す", ImGui.TableColumnFlags_WidthFixed, 110)
     ImGui.TableSetupScrollFreeze(ctx, 1, 1)
     ImGui.TableHeadersRow(ctx)
 
@@ -177,6 +178,22 @@ function M.search(ImGui, ctx, app, ui)
       end
       if not can_flag then ImGui.EndDisabled(ctx) end
 
+      -- 「隠す」= 全員の一覧からこの行を消す（「使えない」△と違い、行ごと出なくなる）。
+      -- 確認は出さない。整備タブの「非表示」から戻せる。
+      ImGui.SameLine(ctx)
+      if ImGui.SmallButton(ctx, "隠す") then
+        local ok, err = VM.save_hide(state, row.key, true, app.store, app.root, app.boot.now_iso())
+        if ok then
+          app.pending_reload = true
+          app.status = ("非表示にしました: %s（整備タブの「非表示」から戻せます）"):format(row.name)
+        else
+          app.status = "非表示にできませんでした: " .. tostring(err)
+        end
+      end
+      tooltip(ImGui, ctx,
+        "この行を全員の一覧から消します（自分だけでなく全員に効きます）。" ..
+        "整備タブの「非表示」から戻せます")
+
       ImGui.PopID(ctx)
     end
     ImGui.EndTable(ctx)
@@ -247,6 +264,43 @@ function M.maintenance(ImGui, ctx, app, ui)
       ImGui.Text(ctx, ("%s（%s）"):format(row.name, row.vendor or ""))
       ImGui.SameLine(ctx)
       link_button(ImGui, ctx, ui, app, row)
+      ImGui.PopID(ctx)
+    end
+  end
+
+  -- (4) 非表示 — 検索タブの「隠す」で消したもの。ここからだけ戻せる。
+  local hidden = VM.hidden_rows(state)
+  if ImGui.CollapsingHeader(ctx, ("非表示（%d件）"):format(#hidden)) then
+    ImGui.TextWrapped(ctx,
+      "検索タブの「隠す」で一覧から消したものです（全員の一覧から消えています）。")
+    for _, row in ipairs(hidden) do
+      ImGui.PushID(ctx, "hd" .. row.key)
+      ImGui.Text(ctx, ("%s（%s） — %s が %s に"):format(
+        row.name, row.vendor or "", row.by_display or "?", row.date ~= "" and row.date or "?"))
+      if not row.in_index then
+        tooltip(ImGui, ctx, "今は誰も持っていません（キー: " .. row.key .. "）")
+      end
+      ImGui.SameLine(ctx)
+      if ImGui.SmallButton(ctx, "リストに復帰") then
+        local ok, err = VM.save_hide(state, row.key, false, app.store, app.root, app.boot.now_iso())
+        if ok then
+          app.pending_reload = true
+          app.status = ("リストに戻しました: %s"):format(row.name)
+        else
+          app.status = "戻せませんでした: " .. tostring(err)
+        end
+      end
+      -- 誰が持っているか（○を人数分だけ並べる。表と同じ見え方にする）
+      local col = 0
+      for _, m in ipairs(state.members) do
+        ImGui.SameLine(ctx)
+        local has = false
+        for _, h in ipairs(row.holders or {}) do
+          if h == (m.display_name or m.id) then has = true; break end
+        end
+        ImGui.Text(ctx, (col == 0 and "  " or "") .. m.display_name .. ":" .. (has and MARK.has or MARK.none))
+        col = col + 1
+      end
       ImGui.PopID(ctx)
     end
   end

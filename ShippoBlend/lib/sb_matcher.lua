@@ -18,7 +18,7 @@
 
   リンク・エイリアスの合成（LWW）・検索・近い名前判定は sb_matcher_links.lua に分けて
   ある（1ファイル350行未満に保つため）。公開APIとしてはこの sb_matcher だけを見ればよい
-  （M.merge_links / M.merge_aliases / M.search / M.near_duplicates もここから呼べる）。
+  （M.merge_links / M.merge_aliases / M.merge_hides / M.search / M.near_duplicates もここから呼べる）。
 
   参照: 計画書/計画書.md 3-2/3-3節。
 --]]
@@ -31,6 +31,7 @@ local M = {}
 -- intersection関数を引数で受け取る形なので、ここでラップして渡す）。
 M.merge_links = links_part.merge_links
 M.merge_aliases = links_part.merge_aliases
+M.merge_hides = links_part.merge_hides
 M.near_duplicates = links_part.near_duplicates
 
 -- ============================================================

@@ -66,6 +66,33 @@ function M.merge_aliases(alias_docs)
   return out
 end
 
+--- hide_docs: store:read_hides() の並び。各ドキュメントは
+--   { member_id = "kamil", entries = { [key] = { hidden = true|false, updated_at = .. }, ... } }
+-- の形。「非表示」＝検索タブの一覧から全員分まとめて消すこと（「使えない」△とは別物で、
+-- こちらは行ごと出なくなる）。同じキーに複数あれば一番新しい更新日時が勝つ（LWW）。
+-- hidden == false は「リストに復帰」＝非表示の取り消し。merge_aliases の "" と同じ扱いで、
+-- LWWの比較には参加するが、最後に勝った値が false なら結果から消える。
+-- @return { [key] = { hidden = true, updated_at, by } }
+function M.merge_hides(hide_docs)
+  local out = {}
+  for _, doc in ipairs(hide_docs or {}) do
+    local member_id = doc.member_id
+    for key, rec in pairs(doc.entries or {}) do
+      if type(rec) == "table" then
+        local cur = out[key]
+        local ts = rec.updated_at or ""
+        if not cur or ts > (cur.updated_at or "") then
+          out[key] = { hidden = (rec.hidden == true), updated_at = rec.updated_at, by = rec.by or member_id }
+        end
+      end
+    end
+  end
+  for key, rec in pairs(out) do
+    if rec.hidden ~= true then out[key] = nil end
+  end
+  return out
+end
+
 -- ============================================================
 -- 検索
 -- ============================================================

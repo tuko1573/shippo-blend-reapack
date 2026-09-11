@@ -123,7 +123,10 @@ local function main()
   local today = deps.now_iso():sub(1, 10)
   local force = (SHIPPOBLEND_FORCE == true)
   if not force and config:get_last_sent_date() == today then
-    SB_SENDNOW_LOG("今日はすでに送信済みなのでスキップ (member=" .. member_id .. ")")
+    -- 起動時に一覧が揃っているかを後で比べられるよう、件数だけ数えて記録する
+    local n = 0
+    while reaper.EnumInstalledFX(n) do n = n + 1 end
+    SB_SENDNOW_LOG(("今日はすでに送信済みなのでスキップ (member=%s, 一覧%d件)"):format(member_id, n))
     return
   end
 

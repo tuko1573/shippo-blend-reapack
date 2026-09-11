@@ -1,7 +1,7 @@
 --[[
   sb_viewmodel_actions.lua
   Shippo Blend Plugins — sb_viewmodel の一部。純Lua。
-  「押したときに起きること」（使えない印の反転、リンクの保存、AIに聞くURL、
+  「押したときに起きること」（使えない印の反転、リンクの保存、非表示、AIに聞くURL、
   挿入で試す名前の候補）と、形式・識別子まわりの小道具。
   sb_viewmodel.lua が require して自分のAPIに合成するので、呼び出し側は
   sb_viewmodel だけ見ればよい（1ファイル400行未満に保つための分割）。
@@ -165,6 +165,68 @@ function M.save_alias(state, key, canonical, store, root, now_iso)
   doc.aliases[key] = { canonical_key = canonical, updated_at = ts, by = state.me }
   doc.updated_at = ts
   return store:write_aliases(root, state.me, doc)
+end
+
+-- ============================================================
+-- VM.save_hide / VM.hidden_rows — 「非表示」（全員の一覧から消す）
+-- ============================================================
+
+--- 自分の hides/<id>.json へ1件書く。hidden=true で検索タブの一覧から消え、
+-- hidden=false（整備タブの「リストに復帰」）で戻る。どちらも新しい更新日時で書くので、
+-- 全員分を合わせたとき（sb_matcher.merge_hides）に最後の操作が勝つ。
+-- 「使えない」印（△）とは別物: あちらは行が残って印が付くだけ、こちらは行ごと消える。
+-- @return ok, err
+function M.save_hide(state, key, hidden, store, root, now_iso)
+  if not state or not state.me then return false, "メンバーIDが未設定" end
+  if not key or key == "" then return false, "キーが空" end
+
+  local doc = nil
+  for _, d in ipairs(store:read_hides(root)) do
+    if d.member_id == state.me then doc = d; break end
+  end
+  doc = doc or { schema = Store.SCHEMA, member_id = state.me, entries = {} }
+  if type(doc.entries) ~= "table" then doc.entries = {} end
+  doc.schema = doc.schema or Store.SCHEMA
+  doc.member_id = state.me
+  local ts = now_iso or state.now_iso
+  doc.entries[key] = { hidden = (hidden == true), updated_at = ts, by = state.me }
+  doc.updated_at = ts
+  return store:write_hides(root, state.me, doc)
+end
+
+--- 整備タブ(4)に出す「今こうして消えているもの」の並び。
+-- @return { {key, name, vendor, by, by_display, updated_at, date, holders}, ... }（名前順）
+-- holders は「誰が持っているか」（表示名の並び）。索引から消えている（全員が持たなく
+-- なった、または別の行へまとめられた）キーは、名前の代わりにキーをそのまま出す。
+function M.hidden_rows(state)
+  local out = {}
+  for key, rec in pairs(state and state.hides or {}) do
+    local e = state.index and state.index[key]
+    local holders = {}
+    local by_display = rec.by
+    for _, m in ipairs(state.members or {}) do
+      if e and e.by and e.by[m.id] then holders[#holders + 1] = m.display_name or m.id end
+      if m.id == rec.by then by_display = m.display_name or m.id end
+    end
+    local ts = rec.updated_at or ""
+    out[#out + 1] = {
+      key = key,
+      name = (e and e.name) or key,
+      vendor = (e and e.vendor) or "",
+      in_index = (e ~= nil),
+      by = rec.by,
+      by_display = by_display or rec.by or "?",
+      updated_at = rec.updated_at,
+      date = ts:sub(1, 10),
+      holders = holders,
+    }
+  end
+  table.sort(out, function(a, b)
+    local an, bn = (a.name or ""):lower(), (b.name or ""):lower()
+    if an ~= bn then return an < bn end
+    return a.key < b.key
+  end)
+  return out
 end
 
 -- ============================================================

@@ -24,6 +24,8 @@ M.locate_path       = Actions.locate_path
 M.toggle_unusable   = Actions.toggle_unusable
 M.save_link         = Actions.save_link
 M.save_alias        = Actions.save_alias
+M.save_hide         = Actions.save_hide
+M.hidden_rows       = Actions.hidden_rows
 
 local sorted_formats = Actions.sorted_formats
 local ident_kind = Actions.ident_kind
@@ -33,7 +35,7 @@ local ident_kind = Actions.ident_kind
 -- ============================================================
 
 --- メンバー・リンクの「変わっていないか」を判定するための署名。
-local function signature(member_docs, link_docs, alias_docs, me)
+local function signature(member_docs, link_docs, alias_docs, hide_docs, me)
   local parts = { "me=" .. tostring(me) }
   local rows = {}
   for _, d in ipairs(member_docs) do
@@ -49,6 +51,11 @@ local function signature(member_docs, link_docs, alias_docs, me)
     local n = 0
     for _ in pairs(d.aliases or {}) do n = n + 1 end
     rows[#rows + 1] = string.format("a:%s:%d:%s", tostring(d.member_id), n, tostring(d.updated_at))
+  end
+  for _, d in ipairs(hide_docs) do
+    local n = 0
+    for _ in pairs(d.entries or {}) do n = n + 1 end
+    rows[#rows + 1] = string.format("h:%s:%d:%s", tostring(d.member_id), n, tostring(d.updated_at))
   end
   table.sort(rows)
   for _, r in ipairs(rows) do parts[#parts + 1] = r end
@@ -94,8 +101,9 @@ function M.load(store, root, config, now_iso, prev_state)
   local member_docs = store:read_members(root)
   local link_docs = store:read_links(root)
   local alias_docs = store:read_aliases(root)
+  local hide_docs = store:read_hides(root)
 
-  local sig = signature(member_docs, link_docs, alias_docs, me)
+  local sig = signature(member_docs, link_docs, alias_docs, hide_docs, me)
   if prev_state and prev_state.sig == sig then
     prev_state.now_iso = now_iso
     return prev_state
@@ -104,6 +112,7 @@ function M.load(store, root, config, now_iso, prev_state)
   local aliases = Matcher.merge_aliases(alias_docs)
   local index = Matcher.merge(member_docs, aliases)
   local links = Matcher.merge_links(link_docs)
+  local hides = Matcher.merge_hides(hide_docs)
 
   local members, me_doc = {}, nil
   local active_ids = {}
@@ -152,6 +161,7 @@ function M.load(store, root, config, now_iso, prev_state)
     index = index,
     links = links,
     aliases = aliases,
+    hides = hides,
     member_docs = member_docs,
     me_doc = me_doc,
     mine_by_key = build_mine_by_key(index, me, me_doc),
@@ -250,7 +260,10 @@ function M.effective_members(state, selected_member_ids)
   return out
 end
 
---- @param opts { near = bool }  near=true のときだけ「≒」判定を行う（重いので既定でオン）。
+--- @param opts { near = bool, include_hidden = bool }
+-- near=true のときだけ「≒」判定を行う（重いので既定でオン）。
+-- 「非表示」にされたキーは既定で落とす（include_hidden=true で残す）。エイリアス解決と
+-- 畳み込みが済んだ後のキー＝画面に出ているキーで判定する。
 function M.rows(state, query, selected_member_ids, opts)
   opts = opts or {}
   local only = M.effective_members(state, selected_member_ids)
@@ -259,40 +272,44 @@ function M.rows(state, query, selected_member_ids, opts)
   local want_near = (opts.near ~= false)
   local near_keys = want_near and M.ensure_near(state) or {}
 
+  local hides = (not opts.include_hidden) and (state.hides or {}) or nil
+
   local me = state.me
   local rows = {}
   for _, e in ipairs(entries) do
-    local by_member = {}
-    for _, m in ipairs(state.members) do
-      local rec = e.by and e.by[m.id]
-      if not rec then
-        by_member[m.id] = "none"
-      elseif rec.unusable then
-        by_member[m.id] = "unusable"
-      else
-        by_member[m.id] = "has"
+    if not (hides and hides[e.key]) then
+      local by_member = {}
+      for _, m in ipairs(state.members) do
+        local rec = e.by and e.by[m.id]
+        if not rec then
+          by_member[m.id] = "none"
+        elseif rec.unusable then
+          by_member[m.id] = "unusable"
+        else
+          by_member[m.id] = "has"
+        end
       end
+
+      local mine_rec = me and e.by and e.by[me] or nil
+      local formats_mine = sorted_formats(mine_rec and mine_rec.formats)
+
+      rows[#rows + 1] = {
+        key = e.key,
+        name = e.name,
+        vendor = e.vendor,
+        instrument = e.instrument,
+        by_member = by_member,
+        formats_mine = formats_mine,
+        unusable_mine = (mine_rec ~= nil and mine_rec.unusable == true),
+        mismatch = (state.mismatch_keys[e.key] == true),
+        near = (near_keys[e.key] == true),
+        link = state.links[e.key],
+        mine = state.mine_by_key[e.key],
+        -- 索引側に残っている「自分の記録」。mine が nil のときの挿入の予備に使う。
+        mine_index = mine_rec and { formats = mine_rec.formats, idents = mine_rec.idents } or nil,
+        raw_names = e.raw_names,
+      }
     end
-
-    local mine_rec = me and e.by and e.by[me] or nil
-    local formats_mine = sorted_formats(mine_rec and mine_rec.formats)
-
-    rows[#rows + 1] = {
-      key = e.key,
-      name = e.name,
-      vendor = e.vendor,
-      instrument = e.instrument,
-      by_member = by_member,
-      formats_mine = formats_mine,
-      unusable_mine = (mine_rec ~= nil and mine_rec.unusable == true),
-      mismatch = (state.mismatch_keys[e.key] == true),
-      near = (near_keys[e.key] == true),
-      link = state.links[e.key],
-      mine = state.mine_by_key[e.key],
-      -- 索引側に残っている「自分の記録」。mine が nil のときの挿入の予備に使う。
-      mine_index = mine_rec and { formats = mine_rec.formats, idents = mine_rec.idents } or nil,
-      raw_names = e.raw_names,
-    }
   end
   return rows
 end

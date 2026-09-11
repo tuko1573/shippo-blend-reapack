@@ -1,10 +1,12 @@
 --[[
 @description Shippo Blend Plugins
 @author tuko
-@version 0.1.0
+@version 0.2.0
 @changelog
-  Phase 4/5: 「同じものとして扱う」訂正、整備タブの補足表示、
-  REAPER起動時の自動送信の登録／解除、ReaPackでの配布を追加。
+  0.2.0: 「非表示」を追加。検索タブの「隠す」で、その行を全員の一覧から消せる
+  （「使えない」△とは別。整備タブの「非表示」から戻せる）。
+  0.1.0: 「同じものとして扱う」訂正、整備タブの補足表示、
+  REAPER起動時の自動送信の登録／解除、ReaPackでの配布。
 @about
   # Shippo Blend Plugins
 

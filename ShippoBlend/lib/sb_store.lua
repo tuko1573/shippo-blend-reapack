@@ -138,6 +138,7 @@ function M:ensure_dirs(root)
   deps.mkdir_p(root .. sep .. "members")
   deps.mkdir_p(root .. sep .. "links")
   deps.mkdir_p(root .. sep .. "aliases")
+  deps.mkdir_p(root .. sep .. "hides")
 end
 
 -- ============================================================
@@ -223,7 +224,7 @@ function M.hash_member_doc(doc)
 end
 
 -- ============================================================
--- members / links / aliases の書き込み
+-- members / links / aliases / hides の書き込み
 -- ============================================================
 
 --- doc は 計画書 3-2 のスキーマ（member_id を含む）。
@@ -254,8 +255,18 @@ function M:write_aliases(root, member_id, tbl)
   return self:_atomic_write(root .. sep .. "aliases", member_id .. ".json", text)
 end
 
+--- 非表示（検索タブの一覧から全員分まとめて消す）。中身は
+-- { schema=1, member_id, updated_at, entries = { [key] = {hidden, updated_at, by} } }。
+function M:write_hides(root, member_id, tbl)
+  if not member_id or member_id == "" then return false, "member_id が無い" end
+  local ok, text = pcall(sb_json.encode, tbl)
+  if not ok then return false, "json encode失敗: " .. tostring(text) end
+  local sep = self:sep()
+  return self:_atomic_write(root .. sep .. "hides", member_id .. ".json", text)
+end
+
 -- ============================================================
--- members / links / aliases の読み込み
+-- members / links / aliases / hides の読み込み
 -- ============================================================
 
 function M:_list_files(dir_path)
@@ -264,7 +275,7 @@ function M:_list_files(dir_path)
   return deps.enumerate_files(dir_path) or {}
 end
 
---- subdir（"members"|"links"|"aliases"）配下の *.json を読む。
+--- subdir（"members"|"links"|"aliases"|"hides"）配下の *.json を読む。
 -- ファイル名は ^[a-z0-9_]+%.json$ のみ採用（Dropboxの競合コピー・.sbtmpは自動で無視）。
 -- 壊れたJSONは pcall で捕まえて log() し、スキップする（1件の破損で全体を止めない）。
 function M:_read_collection(root, subdir)
@@ -288,5 +299,6 @@ end
 function M:read_members(root) return self:_read_collection(root, "members") end
 function M:read_links(root) return self:_read_collection(root, "links") end
 function M:read_aliases(root) return self:_read_collection(root, "aliases") end
+function M:read_hides(root) return self:_read_collection(root, "hides") end
 
 return M
