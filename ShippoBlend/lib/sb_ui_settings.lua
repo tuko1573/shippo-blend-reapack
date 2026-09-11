@@ -87,7 +87,12 @@ function M.settings(ImGui, ctx, app, ui)
 
   -- 開発用: 合成メンバーをDropboxに置く／消す。
   -- ExtState ShippoBlend/dev_fixtures にフォルダを入れた機械（開発機）でだけ出る。配布版には出ない。
+  -- （または <REAPER設定フォルダ>/ShippoBlend.dev に、そのフォルダのパスを1行書いた機械）
   local DEV_FIX = reaper.GetExtState("ShippoBlend", "dev_fixtures")
+  if DEV_FIX == "" then
+    local f = io.open(reaper.GetResourcePath() .. "/ShippoBlend.dev", "rb")
+    if f then DEV_FIX = (f:read("*l") or ""):gsub("%s+$", ""); f:close() end
+  end
   if app.root and DEV_FIX ~= "" and reaper.file_exists(DEV_FIX .. "/kamil.json") then
     ImGui.SeparatorText(ctx, "開発用（このMacだけに出る）")
     if ImGui.Button(ctx, "試験メンバーを置く") then
