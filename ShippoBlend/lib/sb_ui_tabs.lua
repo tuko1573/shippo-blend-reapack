@@ -94,19 +94,39 @@ function M.search(ImGui, ctx, app, ui)
 
   local ncols = 5 + #state.members
   local flags = ImGui.TableFlags_Borders | ImGui.TableFlags_RowBg |
-    ImGui.TableFlags_ScrollY | ImGui.TableFlags_Resizable
+    ImGui.TableFlags_ScrollY | ImGui.TableFlags_Resizable |
+    ImGui.TableFlags_Sortable | ImGui.TableFlags_SortTristate
   local avail_h = select(2, ImGui.GetContentRegionAvail(ctx)) - 26
   if ImGui.BeginTable(ctx, "sb_rows", ncols, flags, 0, avail_h > 80 and avail_h or 0) then
-    ImGui.TableSetupColumn(ctx, "名前", ImGui.TableColumnFlags_WidthFixed, 240)
-    ImGui.TableSetupColumn(ctx, "メーカー", ImGui.TableColumnFlags_WidthFixed, 130)
+    -- 名前・メーカーだけ並び替え可能（user_id 1・2）。他の列は並び替えの対象外。
+    ImGui.TableSetupColumn(ctx, "名前", ImGui.TableColumnFlags_WidthFixed, 240, 1)
+    ImGui.TableSetupColumn(ctx, "メーカー", ImGui.TableColumnFlags_WidthFixed, 130, 2)
     for _, m in ipairs(state.members) do
-      ImGui.TableSetupColumn(ctx, m.display_name, ImGui.TableColumnFlags_WidthFixed, 52)
+      ImGui.TableSetupColumn(ctx, m.display_name,
+        ImGui.TableColumnFlags_WidthFixed | ImGui.TableColumnFlags_NoSort, 52)
     end
-    ImGui.TableSetupColumn(ctx, "形式", ImGui.TableColumnFlags_WidthFixed, 120)
-    ImGui.TableSetupColumn(ctx, "リンク", ImGui.TableColumnFlags_WidthFixed, 140)
-    ImGui.TableSetupColumn(ctx, "使えない／隠す", ImGui.TableColumnFlags_WidthFixed, 110)
+    ImGui.TableSetupColumn(ctx, "形式",
+      ImGui.TableColumnFlags_WidthFixed | ImGui.TableColumnFlags_NoSort, 120)
+    ImGui.TableSetupColumn(ctx, "リンク",
+      ImGui.TableColumnFlags_WidthFixed | ImGui.TableColumnFlags_NoSort, 140)
+    ImGui.TableSetupColumn(ctx, "使えない／隠す",
+      ImGui.TableColumnFlags_WidthFixed | ImGui.TableColumnFlags_NoSort, 150)
     ImGui.TableSetupScrollFreeze(ctx, 1, 1)
     ImGui.TableHeadersRow(ctx)
+
+    -- 列見出しクリックでの並び替え。小さな表なので毎フレーム読み直す（キャッシュしない）。
+    -- 3回目のクリックで無並び替え（=検索の関連度順）に戻る（TableFlags_SortTristate）。
+    ImGui.TableNeedSort(ctx)
+    local sort_ok, _, sort_user_id, sort_dir = ImGui.TableGetColumnSortSpecs(ctx, 0)
+    local new_sort = nil
+    if sort_ok and sort_dir ~= ImGui.SortDirection_None then
+      local column = (sort_user_id == 1) and "name" or (sort_user_id == 2) and "vendor" or nil
+      if column then
+        new_sort = { column = column, descending = (sort_dir == ImGui.SortDirection_Descending) }
+      end
+    end
+    app.sort = new_sort
+    rows = ui.rows(app)
 
     local shown = math.min(#rows, ui.MAX_ROWS)
     for i = 1, shown do
@@ -166,7 +186,19 @@ function M.search(ImGui, ctx, app, ui)
       ImGui.TableSetColumnIndex(ctx, col + 2)
       local can_flag = (state.me_has_file and row.mine ~= nil)
       if not can_flag then ImGui.BeginDisabled(ctx) end
-      local rv2, v2 = ImGui.Checkbox(ctx, "##unusable", row.unusable_mine == true)
+      -- 「隠す」と同じ見た目の小さなボタン。印が付いているときは押し込まれた色で出す。
+      local is_unusable = (row.unusable_mine == true)
+      if is_unusable then
+        ImGui.PushStyleColor(ctx, ImGui.Col_Button, ImGui.GetStyleColor(ctx, ImGui.Col_ButtonActive))
+      end
+      local rv2 = ImGui.SmallButton(ctx, "使えない##unusable")
+      if is_unusable then ImGui.PopStyleColor(ctx) end
+      local v2 = not is_unusable
+      if can_flag then
+        tooltip(ImGui, ctx, is_unusable
+          and "「使えない」印が付いています。もう一度押すと外れます"
+          or "ライセンス切れ等で使用できない場合は押してください（全員の画面で△になります）")
+      end
       if rv2 and can_flag then
         local ok, err = VM.toggle_unusable(state, row.key, app.store, app.root, app.boot.now_iso())
         if ok then

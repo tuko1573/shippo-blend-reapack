@@ -151,6 +151,8 @@ function M:_atomic_write(dir_path, filename, text)
   local final_path = dir_path .. sep .. filename
   local tmp_path = final_path .. ".sbtmp"
 
+  -- 置き場のフォルダが無ければ作る（古い版で作った v1 には hides/ が無い、など）
+  if deps.mkdir_p then deps.mkdir_p(dir_path) end
   if not deps.write_file(tmp_path, text) then
     return false, "write_file 失敗: " .. tmp_path
   end

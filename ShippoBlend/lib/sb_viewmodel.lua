@@ -10,6 +10,7 @@
 
 local Matcher = require("sb_matcher")
 local Actions = require("sb_viewmodel_actions")
+local Sort = require("sb_viewmodel_sort")
 
 local M = {}
 
@@ -260,10 +261,11 @@ function M.effective_members(state, selected_member_ids)
   return out
 end
 
---- @param opts { near = bool, include_hidden = bool }
+--- @param opts { near = bool, include_hidden = bool, sort = {column="name"|"vendor", descending=bool} }
 -- near=true のときだけ「≒」判定を行う（重いので既定でオン）。
 -- 「非表示」にされたキーは既定で落とす（include_hidden=true で残す）。エイリアス解決と
 -- 畳み込みが済んだ後のキー＝画面に出ているキーで判定する。
+-- opts.sort（列見出しクリック）が無ければ Matcher.search の関連度順のまま返す。
 function M.rows(state, query, selected_member_ids, opts)
   opts = opts or {}
   local only = M.effective_members(state, selected_member_ids)
@@ -311,7 +313,7 @@ function M.rows(state, query, selected_member_ids, opts)
       }
     end
   end
-  return rows
+  return Sort.apply_sort(rows, opts.sort)
 end
 
 -- ============================================================

@@ -109,9 +109,12 @@ function M.rows(app)
     if on then ids[#ids + 1] = id end
   end
   table.sort(ids)
+  local sort = app.sort
+  local sort_sig = sort and (tostring(sort.column) .. (sort.descending and ":desc" or ":asc")) or ""
   local sig = table.concat(ids, ",") .. "\1" .. app.query .. "\1" .. tostring(state.generation)
+    .. "\1" .. sort_sig
   if app.rows_sig ~= sig then
-    app.rows_cache = VM.rows(state, app.query, ids, {})
+    app.rows_cache = VM.rows(state, app.query, ids, { sort = sort })
     app.rows_sig = sig
   end
   return app.rows_cache
@@ -185,6 +188,7 @@ function M.open(opts)
 
     query = "",
     selected = {},        -- [member_id or VM.ALL] = true
+    sort = nil,            -- {column="name"|"vendor", descending=bool}｜nil＝既定順（保存しない）
     rows_cache = {},
     rows_sig = nil,
     status = "",
