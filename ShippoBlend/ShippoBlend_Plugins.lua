@@ -1,8 +1,9 @@
 --[[
 @description Shippo Blend Plugins
 @author tuko
-@version 0.2.1
+@version 0.2.2
 @changelog
+  0.2.2: Windows報告の修正。並び替え部品の配布漏れ、Dropboxを移動していると存在しない場所を使う問題、貼り付けたパスの引用符。
   0.2.1: 「非表示」の書き込み失敗を修正。「使えない」をボタン化して説明を追加。名前・メーカーの見出しクリックで並び替え。
   0.2.0: 「非表示」を追加。検索タブの「隠す」で、その行を全員の一覧から消せる
   （「使えない」△とは別。整備タブの「非表示」から戻せる）。
@@ -36,6 +37,7 @@
   [nomain] lib/sb_ui_tabs.lua
   [nomain] lib/sb_viewmodel.lua
   [nomain] lib/sb_viewmodel_actions.lua
+  [nomain] lib/sb_viewmodel_sort.lua
 --]]
 
 --[[

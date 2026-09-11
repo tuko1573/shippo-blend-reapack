@@ -72,10 +72,36 @@ end
 
 --- override（ExtStateなどから渡された明示指定）→ mac info.json → Windows info.json の順。
 -- @return path|nil, source|nil  ("override" | "mac_info_json" | "win_localappdata" | "win_appdata")
+--- 貼り付けられたDropboxパスを整える（Windowsの「パスをコピー」は "D:\\Dropbox" と引用符付き）。
+-- 前後の空白と引用符（" と '）を落とし、末尾の区切り文字も落とす。
+function M.normalize_pasted_path(s)
+  s = tostring(s or "")
+  s = s:gsub("^%s+", ""):gsub("%s+$", "")
+  s = s:gsub("^[\"']+", ""):gsub("[\"']+$", "")
+  s = s:gsub("^%s+", ""):gsub("%s+$", "")
+  s = s:gsub("[/\\]+$", "")
+  return s
+end
+
+--- そのパスが実在するか（file_exists はフォルダに効かないことがあるので、中の目印も見る）。
+function M:path_exists(path)
+  local deps = self.deps
+  if not path or path == "" or not deps.file_exists then return false end
+  local sep = self:sep()
+  if deps.file_exists(path) then return true end
+  if deps.file_exists(path .. sep .. "Shippo Blend") then return true end
+  if deps.enumerate_files then
+    local ok, names = pcall(deps.enumerate_files, path)
+    if ok and type(names) == "table" and #names > 0 then return true end
+  end
+  return false
+end
+
 function M:locate_dropbox(override)
   local deps = self.deps
 
-  if override and override ~= "" then
+  override = M.normalize_pasted_path(override)
+  if override ~= "" then
     return override, "override"
   end
 
@@ -88,7 +114,8 @@ function M:locate_dropbox(override)
       if doc then
         local path = (doc.personal and doc.personal.path) or (doc.business and doc.business.path)
         if path and path ~= "" then
-          return path, "mac_info_json"
+          if self:path_exists(path) then return path, "mac_info_json" end
+          log(self, "sb_store: info.json のパスが実在しない: " .. path)
         end
       else
         log(self, "sb_store: info.json 読み取り失敗 (" .. info_path .. "): " .. tostring(err))
@@ -109,7 +136,9 @@ function M:locate_dropbox(override)
         if doc then
           local path = (doc.personal and doc.personal.path) or (doc.business and doc.business.path)
           if path and path ~= "" then
-            return path, c.source
+            if self:path_exists(path) then return path, c.source end
+            -- Dropbox本体を別ドライブへ移していると info.json が古い場所を指すことがある
+            log(self, "sb_store: info.json のパスが実在しない: " .. path)
           end
         else
           log(self, "sb_store: info.json 読み取り失敗 (" .. info_path .. "): " .. tostring(err))

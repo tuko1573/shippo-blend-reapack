@@ -32,7 +32,13 @@ function M.settings(ImGui, ctx, app, ui)
   end
 
   ImGui.SeparatorText(ctx, "Dropboxの場所")
-  ImGui.Text(ctx, "今使っている場所: " .. tostring(app.dropbox_path or "（見つかっていません）"))
+  do
+    local shown = app.dropbox_path or "（見つかっていません）"
+    if app.dropbox_path and app.store and not app.store:path_exists(app.dropbox_path) then
+      shown = shown .. "（見つかりません。Dropboxを移動した場合は下の「手で指定」へ）"
+    end
+    ImGui.Text(ctx, "今使っている場所: " .. shown)
+  end
   if ImGui.Button(ctx, "再検出") then
     config:set_dropbox_override("")
     ui.resolve_root(app)

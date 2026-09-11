@@ -75,7 +75,10 @@ function M:get_display_name() return self:get("display_name") end
 function M:set_display_name(name) self:set("display_name", name) end
 
 function M:get_dropbox_override() return self:get("dropbox_override") end
-function M:set_dropbox_override(path) self:set("dropbox_override", path) end
+function M:set_dropbox_override(path)
+  -- 貼り付けの引用符・空白・末尾区切りを落としてから保存する（入口が複数あるのでここで必ず通す）
+  self:set("dropbox_override", require("sb_store").normalize_pasted_path(path))
+end
 
 function M:get_ai_choice() return self:get("ai_choice") or "chatgpt" end
 
