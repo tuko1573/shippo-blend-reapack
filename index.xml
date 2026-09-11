@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  packaging/index.xml — ReaPack のリポジトリ目録（手書き）。
+
+  形式の出典: https://github.com/cfillion/reapack/wiki/Index-Format
+  インストール先は <REAPERリソース>/Scripts/<index の name>/<category の name>/…
+  つまり Scripts/Shippo Blend/ShippoBlend/ShippoBlend_Plugins.lua になる。
+  （Index-Format の category の説明「script/effect パッケージのサブフォルダを決める」と、
+   実機の ReaPack 登録簿で ReaTeam Scripts/Tracks が
+   Scripts/ReaTeam Scripts/Tracks/ に入っていることの両方で確認。）
+
+  版を上げるときは <version> をもう1つ足し、URLは main ではなくタグ（例 v0.1.0）を
+  指すようにするのが本来の作法。今は人数が少ないので main を指している。
+-->
+<index version="1" name="Shippo Blend">
+  <category name="ShippoBlend">
+    <reapack name="ShippoBlend_Plugins.lua" type="script" desc="Shippo Blend Plugins">
+      <version name="0.1.0" author="tuko" time="2026-09-11T00:00:00Z">
+        <changelog><![CDATA[最初の配布版。検索小窓（検索・整備・設定）、Dropboxへの自動送信、リンクと無料印、「同じものとして扱う」訂正、REAPER起動時の自動送信。]]></changelog>
+        <source main="main">https://raw.githubusercontent.com/tuko1573/shippo-blend-reapack/main/ShippoBlend/ShippoBlend_Plugins.lua</source>
+        <source main="main" file="ShippoBlend_SendNow.lua">https://raw.githubusercontent.com/tuko1573/shippo-blend-reapack/main/ShippoBlend/ShippoBlend_SendNow.lua</source>
+        <source main="main" file="ShippoBlend_Startup_Install.lua">https://raw.githubusercontent.com/tuko1573/shippo-blend-reapack/main/ShippoBlend/ShippoBlend_Startup_Install.lua</source>
+        <source file="lib/sb_bootstrap.lua">https://raw.githubusercontent.com/tuko1573/shippo-blend-reapack/main/ShippoBlend/lib/sb_bootstrap.lua</source>
+        <source file="lib/sb_collector.lua">https://raw.githubusercontent.com/tuko1573/shippo-blend-reapack/main/ShippoBlend/lib/sb_collector.lua</source>
+        <source file="lib/sb_config.lua">https://raw.githubusercontent.com/tuko1573/shippo-blend-reapack/main/ShippoBlend/lib/sb_config.lua</source>
+        <source file="lib/sb_ini.lua">https://raw.githubusercontent.com/tuko1573/shippo-blend-reapack/main/ShippoBlend/lib/sb_ini.lua</source>
+        <source file="lib/sb_json.lua">https://raw.githubusercontent.com/tuko1573/shippo-blend-reapack/main/ShippoBlend/lib/sb_json.lua</source>
+        <source file="lib/sb_matcher.lua">https://raw.githubusercontent.com/tuko1573/shippo-blend-reapack/main/ShippoBlend/lib/sb_matcher.lua</source>
+        <source file="lib/sb_matcher_links.lua">https://raw.githubusercontent.com/tuko1573/shippo-blend-reapack/main/ShippoBlend/lib/sb_matcher_links.lua</source>
+        <source file="lib/sb_normalize.lua">https://raw.githubusercontent.com/tuko1573/shippo-blend-reapack/main/ShippoBlend/lib/sb_normalize.lua</source>
+        <source file="lib/sb_startup.lua">https://raw.githubusercontent.com/tuko1573/shippo-blend-reapack/main/ShippoBlend/lib/sb_startup.lua</source>
+        <source file="lib/sb_store.lua">https://raw.githubusercontent.com/tuko1573/shippo-blend-reapack/main/ShippoBlend/lib/sb_store.lua</source>
+        <source file="lib/sb_ui.lua">https://raw.githubusercontent.com/tuko1573/shippo-blend-reapack/main/ShippoBlend/lib/sb_ui.lua</source>
+        <source file="lib/sb_ui_popups.lua">https://raw.githubusercontent.com/tuko1573/shippo-blend-reapack/main/ShippoBlend/lib/sb_ui_popups.lua</source>
+        <source file="lib/sb_ui_settings.lua">https://raw.githubusercontent.com/tuko1573/shippo-blend-reapack/main/ShippoBlend/lib/sb_ui_settings.lua</source>
+        <source file="lib/sb_ui_tabs.lua">https://raw.githubusercontent.com/tuko1573/shippo-blend-reapack/main/ShippoBlend/lib/sb_ui_tabs.lua</source>
+        <source file="lib/sb_viewmodel.lua">https://raw.githubusercontent.com/tuko1573/shippo-blend-reapack/main/ShippoBlend/lib/sb_viewmodel.lua</source>
+        <source file="lib/sb_viewmodel_actions.lua">https://raw.githubusercontent.com/tuko1573/shippo-blend-reapack/main/ShippoBlend/lib/sb_viewmodel_actions.lua</source>
+      </version>
+      <metadata>
+        <description><![CDATA[{\rtf1 {\fonttbl {\f0 Helvetica;}} \f0\fs20 Shippo Blend: a private plugin inventory window for REAPER.}]]></description>
+      </metadata>
+    </reapack>
+  </category>
+  <metadata>
+    <link rel="website">https://github.com/tuko1573/shippo-blend-reapack</link>
+  </metadata>
+</index>
