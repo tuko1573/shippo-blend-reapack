@@ -1,8 +1,11 @@
 --[[
 @description Shippo Blend Plugins
 @author tuko
-@version 0.2.2
+@version 0.3.0
 @changelog
+  0.3.0: 日本語パッチの自動更新。REAPER起動時に1日1回、配布元の新版を確認して差し替える。
+  別の日本語パッチを使っている人はShippo Blend標準のものに切り替える（元のファイルは残す）。
+  英語のまま使っている人には何もしない。Actionsの ShippoBlend_LangPack_Now で今すぐ確認できる。
   0.2.2: Windows報告の修正。並び替え部品の配布漏れ、Dropboxを移動していると存在しない場所を使う問題、貼り付けたパスの引用符。
   0.2.1: 「非表示」の書き込み失敗を修正。「使えない」をボタン化して説明を追加。名前・メーカーの見出しクリックで並び替え。
   0.2.0: 「非表示」を追加。検索タブの「隠す」で、その行を全員の一覧から消せる
@@ -21,11 +24,13 @@
 @provides
   [main] ShippoBlend_SendNow.lua
   [main] ShippoBlend_Startup_Install.lua
+  [main] ShippoBlend_LangPack_Now.lua
   [nomain] lib/sb_bootstrap.lua
   [nomain] lib/sb_collector.lua
   [nomain] lib/sb_config.lua
   [nomain] lib/sb_ini.lua
   [nomain] lib/sb_json.lua
+  [nomain] lib/sb_langpack.lua
   [nomain] lib/sb_matcher.lua
   [nomain] lib/sb_matcher_links.lua
   [nomain] lib/sb_normalize.lua

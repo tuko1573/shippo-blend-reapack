@@ -15,6 +15,31 @@
 <index version="1" name="Shippo Blend">
   <category name="ShippoBlend">
     <reapack name="ShippoBlend_Plugins.lua" type="script" desc="Shippo Blend Plugins">
+      <version name="0.3.0" author="tuko" time="2026-09-15T15:00:00Z">
+        <changelog><![CDATA[日本語パッチの自動更新。REAPER起動時に1日1回、配布元の新版を確認して差し替えます。別の日本語パッチを使っている場合はShippo Blend標準のものに切り替えます（元のファイルは残します）。英語のまま使っている場合は何もしません。]]></changelog>
+        <source main="main">https://raw.githubusercontent.com/tuko1573/shippo-blend-reapack/main/ShippoBlend/ShippoBlend_Plugins.lua</source>
+        <source main="main" file="ShippoBlend_SendNow.lua">https://raw.githubusercontent.com/tuko1573/shippo-blend-reapack/main/ShippoBlend/ShippoBlend_SendNow.lua</source>
+        <source main="main" file="ShippoBlend_Startup_Install.lua">https://raw.githubusercontent.com/tuko1573/shippo-blend-reapack/main/ShippoBlend/ShippoBlend_Startup_Install.lua</source>
+        <source main="main" file="ShippoBlend_LangPack_Now.lua">https://raw.githubusercontent.com/tuko1573/shippo-blend-reapack/main/ShippoBlend/ShippoBlend_LangPack_Now.lua</source>
+        <source file="lib/sb_bootstrap.lua">https://raw.githubusercontent.com/tuko1573/shippo-blend-reapack/main/ShippoBlend/lib/sb_bootstrap.lua</source>
+        <source file="lib/sb_collector.lua">https://raw.githubusercontent.com/tuko1573/shippo-blend-reapack/main/ShippoBlend/lib/sb_collector.lua</source>
+        <source file="lib/sb_config.lua">https://raw.githubusercontent.com/tuko1573/shippo-blend-reapack/main/ShippoBlend/lib/sb_config.lua</source>
+        <source file="lib/sb_ini.lua">https://raw.githubusercontent.com/tuko1573/shippo-blend-reapack/main/ShippoBlend/lib/sb_ini.lua</source>
+        <source file="lib/sb_json.lua">https://raw.githubusercontent.com/tuko1573/shippo-blend-reapack/main/ShippoBlend/lib/sb_json.lua</source>
+        <source file="lib/sb_langpack.lua">https://raw.githubusercontent.com/tuko1573/shippo-blend-reapack/main/ShippoBlend/lib/sb_langpack.lua</source>
+        <source file="lib/sb_matcher.lua">https://raw.githubusercontent.com/tuko1573/shippo-blend-reapack/main/ShippoBlend/lib/sb_matcher.lua</source>
+        <source file="lib/sb_matcher_links.lua">https://raw.githubusercontent.com/tuko1573/shippo-blend-reapack/main/ShippoBlend/lib/sb_matcher_links.lua</source>
+        <source file="lib/sb_normalize.lua">https://raw.githubusercontent.com/tuko1573/shippo-blend-reapack/main/ShippoBlend/lib/sb_normalize.lua</source>
+        <source file="lib/sb_startup.lua">https://raw.githubusercontent.com/tuko1573/shippo-blend-reapack/main/ShippoBlend/lib/sb_startup.lua</source>
+        <source file="lib/sb_store.lua">https://raw.githubusercontent.com/tuko1573/shippo-blend-reapack/main/ShippoBlend/lib/sb_store.lua</source>
+        <source file="lib/sb_ui.lua">https://raw.githubusercontent.com/tuko1573/shippo-blend-reapack/main/ShippoBlend/lib/sb_ui.lua</source>
+        <source file="lib/sb_ui_popups.lua">https://raw.githubusercontent.com/tuko1573/shippo-blend-reapack/main/ShippoBlend/lib/sb_ui_popups.lua</source>
+        <source file="lib/sb_ui_settings.lua">https://raw.githubusercontent.com/tuko1573/shippo-blend-reapack/main/ShippoBlend/lib/sb_ui_settings.lua</source>
+        <source file="lib/sb_ui_tabs.lua">https://raw.githubusercontent.com/tuko1573/shippo-blend-reapack/main/ShippoBlend/lib/sb_ui_tabs.lua</source>
+        <source file="lib/sb_viewmodel.lua">https://raw.githubusercontent.com/tuko1573/shippo-blend-reapack/main/ShippoBlend/lib/sb_viewmodel.lua</source>
+        <source file="lib/sb_viewmodel_actions.lua">https://raw.githubusercontent.com/tuko1573/shippo-blend-reapack/main/ShippoBlend/lib/sb_viewmodel_actions.lua</source>
+        <source file="lib/sb_viewmodel_sort.lua">https://raw.githubusercontent.com/tuko1573/shippo-blend-reapack/main/ShippoBlend/lib/sb_viewmodel_sort.lua</source>
+      </version>
       <version name="0.2.2" author="tuko" time="2026-09-12T15:00:00Z">
         <changelog>Windows報告の修正: 並び替え部品の配布漏れ、Dropbox移動時の場所検出、貼り付けパスの引用符。</changelog>
         <source main="main">https://raw.githubusercontent.com/tuko1573/shippo-blend-reapack/main/ShippoBlend/ShippoBlend_Plugins.lua</source>

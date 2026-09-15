@@ -220,3 +220,18 @@ if SHIPPOBLEND_QUIET ~= true then
   end
   reaper.MB(msg, "Shippo Blend: 今すぐ更新", 0)
 end
+
+-- ============================================================
+-- 日本語パッチの自動更新（起動時だけ。1日1回・画面は止めない）
+-- ============================================================
+-- ここは main() の外・いちばん最後。初回設定が済んでいなくても走らせたいので、
+-- 上の処理がどう終わったかに関係なく実行する。失敗しても本体には影響させない。
+if SHIPPOBLEND_QUIET == true then
+  pcall(function()
+    local sb_langpack = require("sb_langpack")
+    -- reaper.defer で後から動くので、いまの「黙って動く」状態を値として渡す
+    sb_langpack.run(
+      sb_langpack.reaper_deps(sb_bootstrap.read_file, sb_bootstrap.write_file, SB_SENDNOW_LOG),
+      { force = false, verbose = false })
+  end)
+end
